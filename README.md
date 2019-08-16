@@ -1,2 +1,2 @@
-# haproxy
-Playing with haproxy
+# Loadbalancing demo
+

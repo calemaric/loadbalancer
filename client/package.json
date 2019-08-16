@@ -1,0 +1,19 @@
+{
+  "name": "loadbalancer-client",
+  "version": "1.0.0",
+  "main": "server.js",
+  "repository": "https://github.com/calemaric/loadbalancer.git",
+  "author": "Marko Maric (calemaric@gmail.com)",
+  "license": "MIT",
+  "scripts": {
+    "tsc": "tsc",
+    "dev": "ts-node-dev --respawn --transpileOnly ./app/app.ts",
+    "prod": "tsc && node ./build/app.js"
+  },
+  "dependencies": {
+    "@types/express": "^4.17.0",
+    "express": "^4.17.1",
+    "ts-node-dev": "^1.0.0-pre.41",
+    "typescript": "^3.5.3"
+  }
+}
