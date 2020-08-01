@@ -6,14 +6,44 @@ services:
      - 80:80
     networks:
      - net
-  api01:
-    image: httpd:2.4
+  app1:
+    build: ./drupal
+    ports:
+      - 8080:80
+    volumes:
+      - drupal-modules:/var/www/html/modules
+      - drupal-profiles:/var/www/html/profiles
+      - drupal-themes:/var/www/html/themes
+      - drupal-sites:/var/www/html/sites
+    restart: always
     networks:
      - net
-  api02:
-    image: httpd:2.4
+  app2:
+    build: ./drupal
+    ports:
+      - 8081:80
+    volumes:
+      - drupal-modules:/var/www/html/modules
+      - drupal-profiles:/var/www/html/profiles
+      - drupal-themes:/var/www/html/themes
+      - drupal-sites:/var/www/html/sites
+    networks:
+     - net
+  postgres:
+    image: postgres:10
+    environment:
+      POSTGRES_PASSWORD: example
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     networks:
      - net
 networks:
   net:
+volumes: 
+  pgdata:
+  drupal-modules:
+  drupal-profiles:
+  drupal-themes:
+  drupal-sites:
 
