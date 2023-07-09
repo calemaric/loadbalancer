@@ -3,47 +3,89 @@ services:
   loadbalancer:
     build: ./haproxy
     ports:
-     - 80:80
-    networks:
-     - net
+      - 80:80
   app1:
-    build: ./drupal
+    image: wordpress
+    restart: always
     ports:
       - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: user
+      WORDPRESS_DB_PASSWORD: admin
+      WORDPRESS_DB_NAME: wp_shop
     volumes:
-      - drupal-modules:/var/www/html/modules
-      - drupal-profiles:/var/www/html/profiles
-      - drupal-themes:/var/www/html/themes
-      - drupal-sites:/var/www/html/sites
-    restart: always
-    networks:
-     - net
+      - wordpress:/var/www/html
   app2:
-    build: ./drupal
+    image: wordpress
+    restart: always
     ports:
       - 8081:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: user
+      WORDPRESS_DB_PASSWORD: admin
+      WORDPRESS_DB_NAME: wp_shop
+    volumes:
+      - wordpress:/var/www/html
+  app3:
+    build: ./drupal
+    ports:
+      - 8083:80
     volumes:
       - drupal-modules:/var/www/html/modules
       - drupal-profiles:/var/www/html/profiles
       - drupal-themes:/var/www/html/themes
       - drupal-sites:/var/www/html/sites
-    networks:
-     - net
-  postgres:
-    image: postgres:10
-    environment:
-      POSTGRES_PASSWORD: example
+  db:
+    image: mysql:5.7
     restart: always
+    environment:
+      MYSQL_DATABASE: wp_shop
+      MYSQL_USER: user
+      MYSQL_PASSWORD: admin
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-     - net
-networks:
-  net:
-volumes: 
-  pgdata:
+      - db:/var/lib/mysql
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8082:8080
+  influxdb:
+    image: influxdb:1.8
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=k6
+  grafana:
+    image: grafana/grafana:8.5.21
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - ./dashboards:/var/lib/grafana/dashboards
+      - ./load-test/grafana-dashboard.yaml:/etc/grafana/provisioning/dashboards/dashboard.yaml
+      - ./load-test/grafana-datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+  k6:
+    image: loadimpact/k6:latest
+    ports:
+      - "6565:6565"
+    environment:
+      - K6_OUT=influxdb=http://influxdb:8086/k6
+    volumes:
+      - ./load-test/scripts:/scripts
+volumes:
+  load-test:
   drupal-modules:
   drupal-profiles:
   drupal-themes:
   drupal-sites:
+  wordpress:
+  db:
+
 
